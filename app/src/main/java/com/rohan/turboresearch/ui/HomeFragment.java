@@ -9,9 +9,15 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 import com.rohan.turboresearch.R;
+import com.rohan.turboresearch.databinding.FragmentHomeBinding;
 
-public class FirstFragment extends Fragment {
+public class HomeFragment extends Fragment {
+
+    private FragmentHomeBinding _binding;
+    private FloatingActionButton fab;
 
     @Override
     public View onCreateView(
@@ -19,18 +25,22 @@ public class FirstFragment extends Fragment {
             Bundle savedInstanceState
     ) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_first, container, false);
+        _binding = FragmentHomeBinding.inflate(inflater,container, false);
+        return _binding.getRoot();
+//        return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        view.findViewById(R.id.button_first).setOnClickListener(new View.OnClickListener() {
+        fab = _binding.fab;
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NavHostFragment.findNavController(FirstFragment.this)
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
+                NavHostFragment.findNavController(HomeFragment.this)
+                        .navigate(R.id.action_HomeFragment_to_AddNewDataFragment);
             }
         });
+
     }
 }

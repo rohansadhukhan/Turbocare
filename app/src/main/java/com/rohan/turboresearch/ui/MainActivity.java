@@ -31,14 +31,6 @@ public class MainActivity extends AppCompatActivity {
         toolbar = _binding.toolbar;
         setSupportActionBar(toolbar);
 
-        fab = _binding.fab;
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
     }
 
     @Override
