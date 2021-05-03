@@ -2,10 +2,17 @@ package com.rohan.turboresearch.viewmodels;
 
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.rohan.turboresearch.repository.DatabaseRepo;
 import com.rohan.turboresearch.repository.NetworkRepo;
+import com.rohan.turboresearch.room.entity.Cars;
+import com.rohan.turboresearch.utils.Constants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -19,19 +26,32 @@ import retrofit2.Call;
 public class MainViewModel extends ViewModel {
 
     public MutableLiveData<String> vehicleNumber = new MutableLiveData<>();
-    public MutableLiveData<String> testString = new MutableLiveData<>();
-    private NetworkRepo networkRepo;
+    public LiveData<List<Cars>> cars;
+
+    private final NetworkRepo networkRepo;
+    private final DatabaseRepo databaseRepo;
 
     @Inject
     public MainViewModel(
-            NetworkRepo repo
+            NetworkRepo networkRepo,
+            DatabaseRepo databaseRepo
     ) {
-        this.networkRepo = repo;
+        this.networkRepo = networkRepo;
+        this.databaseRepo = databaseRepo;
+        cars = databaseRepo.getAllCars();
     }
 
     public void uploadData(RequestBody data, MultipartBody.Part body) {
-//        String response = networkRepo.uploadData(data);
         vehicleNumber = networkRepo.uploadData(data, body);
+    }
+
+    public void insertData(String path) {
+        databaseRepo.insertData(new Cars(path, "MH 12 AB 1234", "185", "12/05/21"));
+    }
+
+    public LiveData<List<Cars>> getAllCars() {
+        Log.d(Constants.TAG, "cars size " + cars.getValue().size());
+        return cars;
     }
 
 }

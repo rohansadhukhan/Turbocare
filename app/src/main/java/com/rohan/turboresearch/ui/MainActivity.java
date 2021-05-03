@@ -1,16 +1,17 @@
 package com.rohan.turboresearch.ui;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.rohan.turboresearch.R;
-import com.rohan.turboresearch.databinding.ActivityMainBinding;
-import com.rohan.turboresearch.databinding.ContentMainBinding;
-import com.rohan.turboresearch.viewmodels.MainViewModel;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,22 +19,22 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Environment;
-import android.provider.MediaStore;
-import android.util.Log;
-import android.view.View;
-
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+import com.rohan.turboresearch.R;
+import com.rohan.turboresearch.databinding.ContentMainBinding;
+import com.rohan.turboresearch.room.entity.Cars;
+import com.rohan.turboresearch.utils.Constants;
+import com.rohan.turboresearch.viewmodels.MainViewModel;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import dagger.hilt.android.AndroidEntryPoint;
 import okhttp3.MediaType;
@@ -45,58 +46,59 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private final String TAG = "Rohan";
 
-//    private ActivityMainBinding _binding;
-//    private FloatingActionButton fab;
+    private FloatingActionButton fab;
 
     private ContentMainBinding _binding;
-
-    private ImageView image;
-    private TextView text;
-    private Button camera, next, test;
 
     private MainViewModel viewModel;
     private String currentPhotoPath;
 
+    private RecyclerView rcv;
+    private VehicleAdapter adapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        _binding = ActivityMainBinding.inflate(getLayoutInflater());
         _binding = ContentMainBinding.inflate(getLayoutInflater());
         setContentView(_binding.getRoot());
 
         Toolbar toolbar = _binding.toolbar;
         setSupportActionBar(toolbar);
+        setRecyclerView();
 
-        image = _binding.imageView;
-        text = _binding.textView;
-        camera = _binding.button1;
-        next = _binding.button2;
-
-        test = _binding.test;
-
+        fab = _binding.fab;
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
         viewModel.vehicleNumber.observe(this, new Observer<String>() {
             @Override
             public void onChanged(String s) {
-                Snackbar.make(_binding.getRoot(),"Vehicle Number is " + s, Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(_binding.getRoot(), "Vehicle Number is " + s, Snackbar.LENGTH_SHORT).show();
             }
         });
-        
-        camera.setOnClickListener(new View.OnClickListener() {
+
+        viewModel.cars.observe(this, new Observer<List<Cars>>() {
+            @Override
+            public void onChanged(List<Cars> cars) {
+//                Log.d(Constants.TAG, "cars size" + cars.size());
+                adapter.setData(cars);
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dispatchTakePictureIntent();
             }
         });
+    }
 
-        next.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                File f = new File(currentPhotoPath);
-                uploadData(f);
-            }
-        });
+    private void setRecyclerView() {
+        rcv = _binding.rcv;
+        adapter = new VehicleAdapter(this);
+        rcv.setHasFixedSize(true);
+        rcv.setLayoutManager(new LinearLayoutManager(this));
+        rcv.setAdapter(adapter);
     }
 
     private void dispatchTakePictureIntent() {
@@ -143,8 +145,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            File f = new File(currentPhotoPath);
-            image.setImageURI(Uri.fromFile(f));
+//            File f = new File(currentPhotoPath);
+//            image.setImageURI(Uri.fromFile(f));
+            viewModel.insertData(currentPhotoPath);
+            viewModel.getAllCars();
         }
     }
 
