@@ -24,7 +24,6 @@ public class AddNewDataFragment extends Fragment {
         // Inflate the layout for this fragment
         _binding = FragmentAddNewDataBinding.inflate(inflater, container, false);
         return _binding.getRoot();
-//        return inflater.inflate(R.layout.fragment_add_new_data, container, false);
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
