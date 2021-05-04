@@ -41,8 +41,9 @@ public class MainViewModel extends ViewModel {
         cars = databaseRepo.getAllCars();
     }
 
-    public void uploadData(RequestBody data, MultipartBody.Part body) {
+    public MutableLiveData<String> uploadData(RequestBody data, MultipartBody.Part body) {
         vehicleNumber = networkRepo.uploadData(data, body);
+        return vehicleNumber;
     }
 
     public void insertData(String path) {

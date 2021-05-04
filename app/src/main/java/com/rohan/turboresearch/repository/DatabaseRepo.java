@@ -26,7 +26,6 @@ public class DatabaseRepo {
     }
 
     public void insertData(Cars car) {
-
         new insertAsyncTask(dao).execute(car);
     }
 
@@ -46,8 +45,6 @@ public class DatabaseRepo {
             return null;
         }
     }
-
-
 }
 
 

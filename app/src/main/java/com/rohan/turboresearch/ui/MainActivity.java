@@ -1,5 +1,6 @@
 package com.rohan.turboresearch.ui;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import com.rohan.turboresearch.R;
 import com.rohan.turboresearch.databinding.ContentMainBinding;
 import com.rohan.turboresearch.room.entity.Cars;
 import com.rohan.turboresearch.utils.Constants;
+import com.rohan.turboresearch.utils.LoadingAlertDialog;
 import com.rohan.turboresearch.viewmodels.MainViewModel;
 
 import java.io.File;
@@ -44,11 +46,11 @@ import okhttp3.RequestBody;
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private final String TAG = "Rohan";
 
     private FloatingActionButton fab;
 
     private ContentMainBinding _binding;
+    private LoadingAlertDialog dialog;
 
     private MainViewModel viewModel;
     private String currentPhotoPath;
@@ -67,14 +69,9 @@ public class MainActivity extends AppCompatActivity {
         setRecyclerView();
 
         fab = _binding.fab;
+        dialog = new LoadingAlertDialog(MainActivity.this);
 
         viewModel = new ViewModelProvider(this).get(MainViewModel.class);
-        viewModel.vehicleNumber.observe(this, new Observer<String>() {
-            @Override
-            public void onChanged(String s) {
-                Snackbar.make(_binding.getRoot(), "Vehicle Number is " + s, Snackbar.LENGTH_SHORT).show();
-            }
-        });
 
         viewModel.cars.observe(this, new Observer<List<Cars>>() {
             @Override
@@ -82,6 +79,7 @@ public class MainActivity extends AppCompatActivity {
 //                Log.d(Constants.TAG, "cars size" + cars.size());
                 adapter.setData(cars);
                 adapter.notifyDataSetChanged();
+                dialog.dismissDialog();
             }
         });
 
@@ -109,10 +107,10 @@ public class MainActivity extends AppCompatActivity {
             File photoFile = null;
             try {
                 photoFile = createImageFile();
-                Log.d(TAG, "image path: " + photoFile);
+                Log.d(Constants.TAG, "image path: " + photoFile);
             } catch (IOException ex) {
                 // Error occurred while creating the File
-                Log.d(TAG, "Error occurred " + ex.getMessage());
+                Log.d(Constants.TAG, "Error occurred " + ex.getMessage());
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
@@ -145,10 +143,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-//            File f = new File(currentPhotoPath);
+            dialog.loadDialog();
+            File f = new File(currentPhotoPath);
 //            image.setImageURI(Uri.fromFile(f));
             viewModel.insertData(currentPhotoPath);
             viewModel.getAllCars();
+            uploadData(f);
         }
     }
 
@@ -175,9 +175,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void uploadData(File file) {
-//        RequestBody body = RequestBody.create(MediaType.parse("image/*"), file);
-        RequestBody body = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        RequestBody body = RequestBody.create(MediaType.parse("image/*"), file);
+//        RequestBody body = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part data = MultipartBody.Part.createFormData("file", file.getName(), body);
-        viewModel.uploadData(body, data);
+        viewModel.uploadData(body, data).observe(this,s -> {
+            Log.d(Constants.TAG, "vehicle number is " + s);
+        });
     }
 }
