@@ -11,16 +11,16 @@ import com.rohan.turboresearch.repository.NetworkRepo;
 import com.rohan.turboresearch.room.entity.Cars;
 import com.rohan.turboresearch.utils.Constants;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import javax.inject.Inject;
 
 import dagger.hilt.android.lifecycle.HiltViewModel;
-import dagger.hilt.android.scopes.ViewModelScoped;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import retrofit2.Call;
 
 @HiltViewModel
 public class MainViewModel extends ViewModel {
@@ -41,17 +41,19 @@ public class MainViewModel extends ViewModel {
         cars = databaseRepo.getAllCars();
     }
 
-    public MutableLiveData<String> uploadData(RequestBody data, MultipartBody.Part body) {
-        vehicleNumber = networkRepo.uploadData(data, body);
+    public MutableLiveData<String> uploadData(RequestBody body, MultipartBody.Part part) {
+        vehicleNumber = networkRepo.uploadTestData(body, part);
         return vehicleNumber;
     }
 
     public void insertData(String path) {
-        databaseRepo.insertData(new Cars(path, "MH 12 AB 1234", "185", "12/05/21"));
+        String timeStamp = new SimpleDateFormat("HH:mma dd/MM/yyyy ", Locale.getDefault()).format(new Date());
+        Cars car = new Cars(path, vehicleNumber.getValue(), networkRepo.duration, timeStamp);
+        Log.d(Constants.TAG, car.getDate());
+        databaseRepo.insertData(car);
     }
 
     public LiveData<List<Cars>> getAllCars() {
-        Log.d(Constants.TAG, "cars size " + cars.getValue().size());
         return cars;
     }
 

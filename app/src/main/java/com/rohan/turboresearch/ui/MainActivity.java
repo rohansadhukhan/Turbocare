@@ -1,18 +1,13 @@
 package com.rohan.turboresearch.ui;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,8 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.rohan.turboresearch.R;
 import com.rohan.turboresearch.databinding.ContentMainBinding;
 import com.rohan.turboresearch.room.entity.Cars;
 import com.rohan.turboresearch.utils.Constants;
@@ -76,10 +69,9 @@ public class MainActivity extends AppCompatActivity {
         viewModel.cars.observe(this, new Observer<List<Cars>>() {
             @Override
             public void onChanged(List<Cars> cars) {
-//                Log.d(Constants.TAG, "cars size" + cars.size());
+                dialog.dismissDialog();
                 adapter.setData(cars);
                 adapter.notifyDataSetChanged();
-                dialog.dismissDialog();
             }
         });
 
@@ -143,43 +135,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            dialog.loadDialog();
+            dialog.loadDialog("Uploading file...");
             File f = new File(currentPhotoPath);
-//            image.setImageURI(Uri.fromFile(f));
-            viewModel.insertData(currentPhotoPath);
             viewModel.getAllCars();
             uploadData(f);
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
     private void uploadData(File file) {
-        RequestBody body = RequestBody.create(MediaType.parse("image/*"), file);
 //        RequestBody body = RequestBody.create(MediaType.parse("multipart/form-data"), file);
+        RequestBody body = RequestBody.create(MediaType.parse("image/jpg"), file);
         MultipartBody.Part data = MultipartBody.Part.createFormData("file", file.getName(), body);
-        viewModel.uploadData(body, data).observe(this,s -> {
+        viewModel.uploadData(body, data).observe(this, s -> {
             Log.d(Constants.TAG, "vehicle number is " + s);
+            dialog.dismissDialog();
+            if (s.equals("Error")) {
+                Toast.makeText(MainActivity.this, "Network error occurred, unable to send request", Toast.LENGTH_SHORT).show();
+            } else {
+                dialog.loadDialog("Saving data...");
+                viewModel.insertData(currentPhotoPath);
+            }
         });
     }
 }

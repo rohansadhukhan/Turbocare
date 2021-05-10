@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -36,8 +37,12 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
 
     @Override
     public void onBindViewHolder(@NonNull VehicleViewHolder holder, int position) {
-        File f = new File(cars.get(position).getPath());
+        Cars car = cars.get(position);
+        File f = new File(car.getPath());
         holder.image.setImageURI(Uri.fromFile(f));
+        holder.number.setText(car.getNumber());
+        holder.time.setText(car.getTime());
+        holder.date.setText(car.getDate());
     }
 
     @Override
@@ -47,10 +52,14 @@ public class VehicleAdapter extends RecyclerView.Adapter<VehicleAdapter.VehicleV
 
     public static class VehicleViewHolder extends RecyclerView.ViewHolder {
         private ImageView image;
+        private TextView number, time, date;
         public VehicleViewHolder(@NonNull View itemView) {
             super(itemView);
 
             image = itemView.findViewById(R.id.image);
+            number = itemView.findViewById(R.id.number);
+            time = itemView.findViewById(R.id.time);
+            date = itemView.findViewById(R.id.date);
         }
     }
 
